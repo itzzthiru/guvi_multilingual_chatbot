@@ -1,0 +1,76 @@
+[
+  {
+    "question": "What is GUVI?",
+    "answer": "GUVI is an online learning platform offering coding, data science, and full-stack courses with IIT-certified programs."
+  },
+  {
+    "question": "What is CodeKata?",
+    "answer": "CodeKata is GUVI's coding practice platform with 1500+ problems designed to improve coding and problem-solving skills."
+  },
+  {
+    "question": "Does GUVI offer courses in Tamil?",
+    "answer": "Yes, GUVI offers courses in English, Tamil, Hindi, Telugu, and more to make tech learning accessible."
+  },
+  {
+    "question": "What is WebKata?",
+    "answer": "WebKata is GUVI's practice platform for front-end development with HTML, CSS, and JavaScript challenges."
+  },
+  {
+    "question": "How can I earn Geekoins?",
+    "answer": "You can earn Geekoins by completing challenges, referring friends, and finishing courses. Geekoins can be redeemed for rewards."
+  },
+  {
+    "question": "What is SQLKata?",
+    "answer": "SQLKata is GUVI's platform to practice SQL queries and database optimization through real-world problems."
+  },
+  {
+    "question": "Does GUVI provide certificates?",
+    "answer": "Yes, GUVI provides certificates for many of its courses. Some are certified by IIT-M Pravartak and Skill India."
+  },
+  {
+    "question": "Is GUVI good for beginners?",
+    "answer": "Yes, GUVI offers beginner-friendly courses with simple explanations and hands-on projects."
+  },
+  {
+    "question": "Does GUVI help with job placement?",
+    "answer": "GUVI provides placement support, mock interviews, and connects learners with hiring partners."
+  },
+  {
+    "question": "What is the GUVI IDE?",
+    "answer": "The GUVI IDE is a cloud-based coding environment that supports 20+ programming languages without installation."
+  },
+  {
+    "question": "Can I learn Python on GUVI?",
+    "answer": "Yes, GUVI offers a Python IIT Certification course that teaches Python from basics to advanced with IIT-M certification."
+  },
+  {
+    "question": "How can I join the GUVI forum?",
+    "answer": "You can join the GUVI forum through your account dashboard to ask questions and interact with mentors."
+  },
+  {
+    "question": "Does GUVI offer live classes?",
+    "answer": "Yes, GUVI offers live ZEN classes for Full-Stack Development, Data Science, and other in-demand skills."
+  },
+  {
+    "question": "Can I access GUVI courses after completion?",
+    "answer": "Most GUVI courses come with lifetime access to the content and resources."
+  },
+  {
+    "question": "What are Geekoins?",
+    "answer": "Geekoins are GUVI's reward points earned through learning and referrals. They can be redeemed for gifts and vouchers."
+  },
+
+  {
+    "question": "What is GUVI?",
+    "answer": "GUVI is an online learning platform offering coding, data science, and full-stack courses with IIT-certified programs."
+  },
+  {
+    "question": "Does GUVI offer courses in Tamil?",
+    "answer": "Yes, GUVI offers courses in English, Tamil, Hindi, Telugu, and more to make tech learning accessible."
+  },
+  {
+    "question": "What is CodeKata?",
+    "answer": "CodeKata is GUVI's coding practice platform with 1500+ problems designed to improve coding and problem-solving skills."
+  }
+]
+
