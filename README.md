@@ -34,3 +34,6 @@ pip install -r requirements.txt
 
 # Run the Streamlit app
 streamlit run app.py
+
+## Hugging face deployment App link: https://huggingface.co/spaces/thiru43/guvi_chatbot
+## Demo video link: https://www.linkedin.com/posts/thirukumaran-undefined-8b336b352_project-title-guvi-multilingual-chatbot-activity-7361438830962323458-1hSl?utm_source=share&utm_medium=member_desktop&rcm=ACoAAFf5eUcBIVM5jB52tTRYrgFrPIkAA2pI4tM 
