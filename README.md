@@ -74,8 +74,8 @@ streamlit run app.py
 
 Hugging Face Space: GUVI Multilingual Chatbot: https://huggingface.co/spaces/thiru43/guvi_chatbot
 
-Demo Video: LinkedIn Demo: https://www.linkedin.com/posts/thirukumaran-undefined-8b336b352_project-title-guvi-multilingual-chatbot-activity-
-7361438830962323458-1hSl?utm_source=share&utm_medium=member_desktop&rcm=ACoAAFf5eUcBIVM5jB52tTRYrgFrPIkAA2pI4tM
+Demo Video: LinkedIn Demo: https://www.linkedin.com/posts/thirukumaran-undefined-8b336b352_project-title-guvi-multilingual-chatbot-activity-7361438830962323458-1hSl?utm_source=share&utm_medium=member_desktop&rcm=ACoAAFf5eUcBIVM5jB52tTRYrgFrPIkAA2pI4tM
+
 ---
 
 ## 🧠 How It Works
