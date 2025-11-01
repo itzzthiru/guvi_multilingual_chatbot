@@ -3,99 +3,82 @@ import streamlit as st
 from chatbot import Chatbot
 import time
 
-st.set_page_config(page_title="GUVI Multilingual Chatbot", page_icon="🤖", layout="centered")
+# ---------------------------- #
+# Streamlit page setup
+# ---------------------------- #
+st.set_page_config(
+    page_title="GUVI Multilingual Chatbot — Project",
+    page_icon="🤖",
+    layout="centered"
+)
 
-# Use a cached resource so heavy models initialize only once.
+# ---------------------------- #
+# Cache chatbot instance (to avoid reloading model)
+# ---------------------------- #
 @st.cache_resource(show_spinner=False)
 def get_bot():
     return Chatbot()
 
+# ---------------------------- #
+# Initialize session state
+# ---------------------------- #
 def init_session():
     if "history" not in st.session_state:
-        st.session_state.history = []  # list of (speaker, text)
+        st.session_state.history = []  # [(speaker, text)]
     if "last_lang" not in st.session_state:
         st.session_state.last_lang = "eng_Latn"
+    if "last_results" not in st.session_state:
+        st.session_state.last_results = None
 
+# ---------------------------- #
+# Display conversation history
+# ---------------------------- #
 def render_chat():
-    for speaker, text in st.session_state.history:
-        if speaker == "user":
-            st.markdown(f"**You:** {text}")
-        else:
-            st.markdown(f"**Bot:** {text}")
+    if not st.session_state.history:
+        st.info("No conversation yet. Ask your first question below 👇")
+    else:
+        for speaker, text in st.session_state.history:
+            if speaker == "user":
+                st.markdown(f"🧑 **You:** {text}")
+            else:
+                st.markdown(f"🤖 **Bot:** {text}")
 
+# ---------------------------- #
+# Main function
+# ---------------------------- #
 def main():
     init_session()
-    st.title("🤖 GUVI Multilingual Chatbot — GUVI Project")
-    st.caption("Type in English or your native language. I translate, search GUVI content/FAQ, and reply in your language.")
+    st.title("🤖 GUVI Multilingual Chatbot — Project")
+    st.caption("Ask me about GUVI, CodeKata, WebKata, or any course — in your own language.")
     st.markdown("---")
 
-    # Controls: language hint and options
+    bot = get_bot()
+
+    # Input field and detected language
     cols = st.columns([3, 1])
     with cols[0]:
-        user_input = st.chat_input("Type your message here...")  # available in newer Streamlit versions
+        user_input = st.chat_input("💬 Type your question here...")
     with cols[1]:
-        # show detected language from last response if available
-        st.markdown(f"**Detected:** {st.session_state.get('last_lang', 'N/A')}")
+        st.markdown(f"**Detected:** {st.session_state.last_lang}")
 
-    bot = get_bot()
     if user_input:
         user_input = user_input.strip()
         st.session_state.history.append(("user", user_input))
-        # call bot
+
+        # Run bot response
         with st.spinner("Processing..."):
             try:
-                start = time.time()
+                start_time = time.time()
                 response_data = bot.get_response(user_input, top_k=3)
-                latency = time.time() - start
+                response_time = time.time() - start_time
 
-                # store detected language for UI hint
-                st.session_state.last_lang = response_data.get("detected_lang_code", st.session_state.last_lang)
+                st.session_state.last_lang = response_data.get("detected_lang_code", "eng_Latn")
 
-                # collect combined outputs (FAQ top-k, GUVI top-k, generative fallback)
-                outputs = []
-
-                # FAQ answers (may contain list of tuples (answer, score))
                 faqs = response_data.get("faq_answers", [])
-                if faqs:
-                    outputs.append(("FAQ", faqs))
-
-                # GUVI paragraphs
                 guvi = response_data.get("guvi_paragraphs", [])
-                if guvi:
-                    outputs.append(("GUVI", guvi))
-
-                # Generative fallback might be present
                 gen = response_data.get("generative_answers", [])
-                if gen:
-                    outputs.append(("Generative", gen))
 
-                # Format display: show top-k grouped and confidence scores
-                display_texts = []
-                for kind, items in outputs:
-                    st.markdown(f"**{kind} results:**")
-                    for idx, item in enumerate(items):
-                        # item could be (text, score, optional_source)
-                        if isinstance(item, (list, tuple)):
-                            text = item[0]
-                            score = item[1] if len(item) > 1 else None
-                            tag = item[2] if len(item) > 2 else ""
-                        else:
-                            text = str(item)
-                            score = None
-                            tag = ""
-                        s = f"- {text}"
-                        if score is not None:
-                            s += f"  _(score: {score:.3f})_"
-                        if tag:
-                            s += f"  _[{tag}]_"
-                        st.markdown(s)
-
-                if not outputs:
-                    st.markdown("I couldn't find a close match. I tried FAQ and GUVI documents. Try rephrasing.")
-
-                st.caption(f"Latency: {latency:.2f}s")
-                # Save the last Bot output in history: choose primary result or generative fallback
-                # For simplicity, if generative exists, show that as primary; else show first available
+                # Primary text for conversation
                 primary_text = None
                 if gen:
                     primary_text = gen[0][0]
@@ -103,17 +86,63 @@ def main():
                     primary_text = faqs[0][0]
                 elif guvi:
                     primary_text = guvi[0][0]
+                else:
+                    primary_text = "I couldn’t find an answer. Try rephrasing your question."
 
-                if primary_text:
-                    st.session_state.history.append(("bot", primary_text))
+                st.session_state.history.append(("bot", primary_text))
+
+                # Save detailed results to display later
+                st.session_state.last_results = {
+                    "faqs": faqs,
+                    "guvi": guvi,
+                    "gen": gen,
+                    "latency": response_time
+                }
+
             except Exception as e:
-                st.error(f"Error: {e}")
+                st.error(f"⚠️ Error: {e}")
                 st.session_state.history.append(("bot", "Sorry, something went wrong."))
+                st.session_state.last_results = None
 
-    # Render chat history below input area
+    # ---------------------------- #
+    # Display conversation first
+    # ---------------------------- #
     st.markdown("---")
-    st.header("Conversation")
+    st.header("💬 Conversation")
     render_chat()
 
+    # ---------------------------- #
+    # Show detailed results (below)
+    # ---------------------------- #
+    if st.session_state.last_results:
+        results = st.session_state.last_results
+        faqs = results["faqs"]
+        guvi = results["guvi"]
+        gen = results["gen"]
+        latency = results["latency"]
+
+        st.markdown("---")
+        st.header("📊 Detailed Results")
+
+        if faqs:
+            st.markdown("✅ **FAQ Matches:**")
+            for text, score, *rest in faqs:
+                st.markdown(f"- {text} _(score: {score:.3f})_")
+
+        if guvi:
+            st.markdown("📘 **GUVI Paragraph Matches:**")
+            for text, score, *rest in guvi:
+                st.markdown(f"- {text} _(score: {score:.3f})_")
+
+        if gen:
+            st.markdown("🧠 **Generative Answers (Fallback):**")
+            for text, score, *rest in gen:
+                st.markdown(f"- {text}")
+
+        st.caption(f"⏱️ Response time: {latency:.2f}s")
+
+# ---------------------------- #
+# Run the app
+# ---------------------------- #
 if __name__ == "__main__":
     main()
