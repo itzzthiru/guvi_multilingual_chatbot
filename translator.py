@@ -1,15 +1,20 @@
-from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
+# translator.py
+from transformers import AutoTokenizer, AutoModelForSeq2SeqLM
 from langdetect import detect, DetectorFactory
+import torch
 
 DetectorFactory.seed = 0
 
 class Translator:
-    def __init__(self):
-        self.model_name = "facebook/nllb-200-distilled-600M"
+    def __init__(self, model_name="facebook/nllb-200-distilled-600M", device=None):
+        # Keep model moderate-sized but multilingual
+        self.model_name = model_name
+        self.device = torch.device("cuda" if (torch.cuda.is_available() and device is not None and device >= 0) else "cpu")
+        # Load once
         self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
-        self.model = AutoModelForSeq2SeqLM.from_pretrained(self.model_name)
+        self.model = AutoModelForSeq2SeqLM.from_pretrained(self.model_name).to(self.device)
 
-        # ISO639 → NLLB token map (subset incl. Indian langs)
+        # A mapping from common iso639 to NLLB tokens — include fallback to eng_Latn
         self.lang_code_map = {
             'af':'afr_Latn','ar':'arb_Arab','bn':'ben_Beng','en':'eng_Latn','es':'spa_Latn',
             'fr':'fra_Latn','gu':'guj_Gujr','hi':'hin_Deva','id':'ind_Latn','it':'ita_Latn',
@@ -26,18 +31,36 @@ class Translator:
         except Exception:
             return "eng_Latn"
 
-    def lang_token_id(self, code: str) -> int:
-        return self.tokenizer.convert_tokens_to_ids(code)
+    def _lang_to_bos_id(self, lang_token: str) -> int:
+        """
+        Prefer tokenizer.lang_code_to_id if available (some seq2seq tokenizers include it),
+        else try converting token via tokenizer.convert_tokens_to_ids.
+        """
+        try:
+            mapping = getattr(self.tokenizer, "lang_code_to_id", None)
+            if mapping and lang_token in mapping:
+                return int(mapping[lang_token])
+        except Exception:
+            pass
+        # fallback: try to find token id of language token string
+        try:
+            return int(self.tokenizer.convert_tokens_to_ids(lang_token))
+        except Exception:
+            # last resort: return bos_token_id
+            return int(self.tokenizer.bos_token_id) if self.tokenizer.bos_token_id is not None else 0
 
     def translate_to_english(self, text: str):
-        src = self.detect_lang_code(text)
-        self.tokenizer.src_lang = src
-        inputs = self.tokenizer(text, return_tensors="pt")
-        output = self.model.generate(**inputs, forced_bos_token_id=self.lang_token_id("eng_Latn"))
-        return self.tokenizer.decode(output[0], skip_special_tokens=True), src
+        src_code = self.detect_lang_code(text)
+        # For NLLB-style tokenizer we usually set forced_bos_token_id to target language token id
+        inputs = self.tokenizer(text, return_tensors="pt", truncation=True).to(self.device)
+        forced_bos = self._lang_to_bos_id("eng_Latn")
+        output = self.model.generate(**inputs, forced_bos_token_id=forced_bos, max_new_tokens=256)
+        decoded = self.tokenizer.decode(output[0], skip_special_tokens=True)
+        return decoded, src_code
 
     def translate_from_english(self, text: str, target_lang_code: str) -> str:
-        self.tokenizer.src_lang = "eng_Latn"
-        inputs = self.tokenizer(text, return_tensors="pt")
-        output = self.model.generate(**inputs, forced_bos_token_id=self.lang_token_id(target_lang_code))
-        return self.tokenizer.decode(output[0], skip_special_tokens=True)
+        inputs = self.tokenizer(text, return_tensors="pt", truncation=True).to(self.device)
+        forced_bos = self._lang_to_bos_id(target_lang_code)
+        output = self.model.generate(**inputs, forced_bos_token_id=forced_bos, max_new_tokens=256)
+        decoded = self.tokenizer.decode(output[0], skip_special_tokens=True)
+        return decoded
